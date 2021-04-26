@@ -1,0 +1,1 @@
+export type NewableClass = new () => {};
