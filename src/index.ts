@@ -5,8 +5,4 @@ export * from "./enums";
 export * from "./services";
 export * from "./types";
 
-export {
-  CqrsModule,
-  CqrsModuleOptions,
-  CqrsModuleQueueOptions,
-} from "./cqrs.module";
+export { CqrsModule } from "./cqrs.module";

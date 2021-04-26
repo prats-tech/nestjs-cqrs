@@ -2,6 +2,8 @@
 import { DynamicModule, Global, Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bull";
 
+import * as Redis from "ioredis";
+
 import { CqrsQueueProcessors } from "./enums";
 
 import { RedisCommandQueueProcessor, RedisEventQueueProcessor } from "./redis";
