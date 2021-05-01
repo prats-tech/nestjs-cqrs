@@ -17,6 +17,7 @@ import {
   CommandBusService,
   ErrorBusService,
   QueueRegistryService,
+  CqrsLogService,
 } from './services';
 
 import { QueueRegistry } from './static';
@@ -54,6 +55,7 @@ export class CqrsModule {
       CommandBusService,
       EventBusService,
       ErrorBusService,
+      CqrsLogService,
     ];
     return {
       module: CqrsModule,

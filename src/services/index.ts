@@ -6,3 +6,4 @@ export * from './abstract-error-handler.service';
 export * from './command-bus.service';
 export * from './event-bus.service';
 export * from './error-bus.service';
+export * from './cqrs-log.service';
