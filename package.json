@@ -10,7 +10,6 @@
   "license": "MIT",
   "scripts": {
     "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "build": "tsc -p tsconfig.json",
     "prepublish": "yarn build",
     "publish:patch": "npm version patch && yarn publish --access=public",
