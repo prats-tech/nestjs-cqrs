@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { InjectQueue, OnQueueFailed, Process, Processor } from "@nestjs/bull";
+import { InjectQueue, OnQueueFailed, Process, Processor } from '@nestjs/bull';
 
-import { Job, Queue } from "bull";
+import { Job, Queue } from 'bull';
 
-import { CqrsQueueProcessors } from "../../enums";
-import { EventBusService, QueueRegistryService } from "../../services";
+import { CqrsQueueProcessors } from '../../enums';
+import { EventBusService, QueueRegistryService } from '../../services';
 
 @Processor(CqrsQueueProcessors.EVENT_QUEUE)
 export class EventQueueProcessor {
@@ -12,7 +12,7 @@ export class EventQueueProcessor {
     @InjectQueue(CqrsQueueProcessors.EVENT_QUEUE)
     private readonly queue: Queue,
     private readonly queueRegistryService: QueueRegistryService,
-    private readonly eventBus: EventBusService
+    private readonly eventBus: EventBusService,
   ) {
     this.eventBus.observable().subscribe({
       next: this.onMessageDispatch.bind(this),
@@ -21,7 +21,7 @@ export class EventQueueProcessor {
 
   @OnQueueFailed()
   onError(job: Job<any>, error: any) {
-    console.log("error", error, job.data);
+    console.log('error', error, job.data);
   }
 
   @Process(CqrsQueueProcessors.EVENT_QUEUE)

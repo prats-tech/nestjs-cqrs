@@ -1,13 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 
-import { QueueRegistry } from "../static";
-import { CqrsQueueProcessors, Metatypes } from "../enums";
-import { AbstractMessage } from "../types";
+import { QueueRegistry } from '../static';
+import { CqrsQueueProcessors, Metatypes } from '../enums';
+import { AbstractMessage } from '../types';
 
 export function MessageHandler(
   queueProcessor: CqrsQueueProcessors,
   metaType: Metatypes,
-  messageType: typeof AbstractMessage
+  messageType: typeof AbstractMessage,
 ): ClassDecorator {
   return (target: any) => {
     QueueRegistry.getInstance().registerHandler(queueProcessor, messageType);

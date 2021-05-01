@@ -1,4 +1,4 @@
-import { AggregateRoot } from "../aggregates";
+import { AggregateRoot } from '../aggregates';
 
 export interface AggregatePropConfig {
   source: NewableFunction;
@@ -14,7 +14,7 @@ export function AggregateProp(config: AggregatePropConfig): PropertyDecorator {
       this.setModelProp(
         config.source.name,
         config.field ?? propertyKey,
-        newValue
+        newValue,
       );
     };
     Object.defineProperty(target, propertyKey, {

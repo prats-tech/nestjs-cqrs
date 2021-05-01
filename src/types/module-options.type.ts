@@ -1,4 +1,4 @@
-import * as Redis from "ioredis";
+import * as Redis from 'ioredis';
 
 export class CqrsModuleQueueOptions {
   commands?: boolean;

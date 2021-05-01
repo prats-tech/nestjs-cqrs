@@ -1,11 +1,11 @@
-import { Subject } from "rxjs";
+import { Subject } from 'rxjs';
 
-import { CqrsQueueProcessors, Metatypes } from "../enums";
+import { CqrsQueueProcessors, Metatypes } from '../enums';
 import {
   NewableClass,
   AbstractMessage,
   CqrsModuleQueueOptions,
-} from "../types";
+} from '../types';
 
 type MessageMapValue = {
   type: string;
@@ -28,7 +28,7 @@ type QueueMap = {
 
 type DispatchQueueCheckingMap = {
   [prop: string]: string;
-}
+};
 
 export class QueueRegistry {
   // singleton
@@ -49,11 +49,10 @@ export class QueueRegistry {
 
   dispatch(
     queueProcessor: CqrsQueueProcessors,
-    message: AbstractMessage
+    message: AbstractMessage,
   ): void {
-    if (
-      this.queueOptions[this.dispatchQueueCheckingMap[queueProcessor]]
-    ) this.nonQueueHandle(queueProcessor, message);
+    if (this.queueOptions[this.dispatchQueueCheckingMap[queueProcessor]])
+      this.nonQueueHandle(queueProcessor, message);
     else this.queueMap[queueProcessor].subject.next(message);
   }
 
@@ -70,7 +69,7 @@ export class QueueRegistry {
 
   nonQueueHandle(
     queueProcessor: CqrsQueueProcessors,
-    message: AbstractMessage
+    message: AbstractMessage,
   ) {
     const messageMap = this.getMessageMap(queueProcessor, message.type);
 
@@ -83,12 +82,12 @@ export class QueueRegistry {
 
   noHandler(queueProcessor: CqrsQueueProcessors, message: AbstractMessage) {
     console.log(`No handler for this ${message.type}`);
-      if (queueProcessor === CqrsQueueProcessors.ERROR_QUEUE) {
-        console.log('--------');
-        console.log((message as any).event);
-        console.log((message as any).message);
-        console.log('--------');
-      }
+    if (queueProcessor === CqrsQueueProcessors.ERROR_QUEUE) {
+      console.log('--------');
+      console.log((message as any).event);
+      console.log((message as any).message);
+      console.log('--------');
+    }
   }
 
   getProcessorObservable(queueProcessor: CqrsQueueProcessors) {
@@ -97,21 +96,21 @@ export class QueueRegistry {
 
   getHandlerObservable(
     queueProcessor: CqrsQueueProcessors,
-    messageClass: NewableClass
+    messageClass: NewableClass,
   ) {
     return this.getMessageMap(
       queueProcessor,
-      Reflect.getMetadata(Metatypes.Message, messageClass)
+      Reflect.getMetadata(Metatypes.Message, messageClass),
     ).subject.asObservable();
   }
 
   registerHandler(
     queueProcessor: CqrsQueueProcessors,
-    messageClass: NewableClass
+    messageClass: NewableClass,
   ) {
     const messageClassType = Reflect.getMetadata(
       Metatypes.Message,
-      messageClass
+      messageClass,
     );
     const messageMap = this.getMessageMap(queueProcessor, messageClassType);
     messageMap.type = messageClassType;
@@ -121,25 +120,26 @@ export class QueueRegistry {
   private createQueueMap() {
     this.queueMap = {} as QueueMap;
     Object.keys(CqrsQueueProcessors).forEach(
-      (k) =>
+      k =>
         (this.queueMap[CqrsQueueProcessors[k]] = {
           subject: new Subject<AbstractMessage>(),
           messageMap: {} as MessageMap,
-        })
+        }),
     );
     this.createDispatchQueueCheckingMap();
   }
 
   private createDispatchQueueCheckingMap() {
     this.dispatchQueueCheckingMap = {};
-    this.dispatchQueueCheckingMap[CqrsQueueProcessors.COMMAND_QUEUE] = 'commands';
+    this.dispatchQueueCheckingMap[CqrsQueueProcessors.COMMAND_QUEUE] =
+      'commands';
     this.dispatchQueueCheckingMap[CqrsQueueProcessors.EVENT_QUEUE] = 'events';
     this.dispatchQueueCheckingMap[CqrsQueueProcessors.ERROR_QUEUE] = 'errors';
   }
 
   private getMessageMap(
     queueProcessor: CqrsQueueProcessors,
-    messageType: string
+    messageType: string,
   ) {
     const queue = this.queueMap[queueProcessor];
     if (!(messageType in queue.messageMap)) {

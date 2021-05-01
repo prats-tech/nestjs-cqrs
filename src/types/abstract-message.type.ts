@@ -1,4 +1,4 @@
-import { Metatypes } from "../enums";
+import { Metatypes } from '../enums';
 
 export class AbstractMessage {
   readonly type: string;

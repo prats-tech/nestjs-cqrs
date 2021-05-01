@@ -1,1 +1,1 @@
-export * from "./queue-registry.static";
+export * from './queue-registry.static';

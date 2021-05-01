@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 
-import { CqrsQueueProcessors } from "../enums";
-import { AbstractMessage } from "../types";
+import { CqrsQueueProcessors } from '../enums';
+import { AbstractMessage } from '../types';
 
-import { QueueRegistryService } from "./queue-registry.service";
-import { AbstractBusService } from "./abstract-bus.service";
+import { QueueRegistryService } from './queue-registry.service';
+import { AbstractBusService } from './abstract-bus.service';
 
 @Injectable()
 export class EventBusService extends AbstractBusService<AbstractMessage> {

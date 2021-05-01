@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 
-import { Observable } from "rxjs";
+import { Observable } from 'rxjs';
 
-import { CqrsQueueProcessors } from "../enums";
-import { QueueRegistry } from "../static";
-import { AbstractMessage } from "../types";
+import { CqrsQueueProcessors } from '../enums';
+import { QueueRegistry } from '../static';
+import { AbstractMessage } from '../types';
 
 @Injectable()
 export class QueueRegistryService {
@@ -13,7 +13,7 @@ export class QueueRegistryService {
   }
 
   getProcessorObservable(
-    queueProcessor: CqrsQueueProcessors
+    queueProcessor: CqrsQueueProcessors,
   ): Observable<AbstractMessage> {
     return QueueRegistry.getInstance().getProcessorObservable(queueProcessor);
   }

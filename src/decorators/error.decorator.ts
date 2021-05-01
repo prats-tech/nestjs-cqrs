@@ -1,4 +1,4 @@
-import { Metatypes } from "../enums";
+import { Metatypes } from '../enums';
 
 export function Error(errorName?: string): ClassDecorator {
   return (target: any) => {

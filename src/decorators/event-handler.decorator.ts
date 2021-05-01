@@ -1,16 +1,16 @@
-import { CqrsQueueProcessors, Metatypes } from "../enums";
-import { AbstractMessage } from "../types";
+import { CqrsQueueProcessors, Metatypes } from '../enums';
+import { AbstractMessage } from '../types';
 
-import { MessageHandler } from "./message-handler.decorator";
+import { MessageHandler } from './message-handler.decorator';
 
 export function EventHandler(
-  messageType: typeof AbstractMessage
+  messageType: typeof AbstractMessage,
 ): ClassDecorator {
   return (target: any) => {
     return MessageHandler(
       CqrsQueueProcessors.EVENT_QUEUE,
       Metatypes.EventHandler,
-      messageType
+      messageType,
     )(target);
   };
 }

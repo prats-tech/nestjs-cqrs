@@ -4,7 +4,11 @@ import { AbstractMessage } from './abstract-message.type';
 
 @Error('error.message_handler')
 export class MessageHandlerError extends AbstractError {
-  constructor(processId?: string, message?: string, readonly event?: AbstractMessage) {
+  constructor(
+    processId?: string,
+    message?: string,
+    readonly event?: AbstractMessage,
+  ) {
     super(processId, message);
   }
 }
