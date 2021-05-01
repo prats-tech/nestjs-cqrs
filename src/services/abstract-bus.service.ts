@@ -22,16 +22,15 @@ export class AbstractBusService<MessageType extends AbstractMessage>
   }
 
   dispatch(message: MessageType): void {
-    this.queueRegistryService.dispatch(this.queueProcessor, message);
     const m = message as any;
+    const processId = !!(m.processId) ? m.processId : 'NO_PROCESS_ID                       '
     console.log(
-      m.processId,
-      this.queueProcessor === CqrsQueueProcessors.COMMAND_QUEUE
-        ? "command:"
-        : "event:",
+      processId,
+      this.queueToTypeMap()[this.queueProcessor],
       m.type,
       !!m.id ? `eventId: ${m.id}` : ""
     );
+    this.queueRegistryService.dispatch(this.queueProcessor, message);
   }
 
   add(message: MessageType): void {
@@ -41,5 +40,13 @@ export class AbstractBusService<MessageType extends AbstractMessage>
   dispatchAll(): void {
     this.messages.forEach((m) => this.dispatch(m));
     this.messages = [];
+  }
+
+  private queueToTypeMap() {
+    const map = {}
+    map[CqrsQueueProcessors.COMMAND_QUEUE] = 'command';
+    map[CqrsQueueProcessors.EVENT_QUEUE] = 'event';
+    map[CqrsQueueProcessors.ERROR_QUEUE] = 'error';
+    return map;
   }
 }

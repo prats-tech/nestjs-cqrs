@@ -23,6 +23,8 @@ export interface AggregateRootConfig {
 export class AggregateRoot {
   protected sources: AggregateRootSources = {};
 
+  constructor(protected readonly processId?: string) {}
+
   protected async loadOrNew(id: string | number): Promise<this> {
     return this.initSources(
       async (service) => await service.findOneOrCreate(id)

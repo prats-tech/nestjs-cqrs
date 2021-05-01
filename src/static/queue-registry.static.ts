@@ -61,8 +61,7 @@ export class QueueRegistry {
     const messageMap = this.getMessageMap(queueProcessor, message.type);
 
     if (!messageMap.class) {
-      console.log(`No handler for this ${message.type}`);
-      return;
+      return this.noHandler(queueProcessor, message);
     }
 
     const properMessage = Object.assign(new messageMap.class(), message);
@@ -76,11 +75,20 @@ export class QueueRegistry {
     const messageMap = this.getMessageMap(queueProcessor, message.type);
 
     if (!messageMap.class) {
-      console.log(`No handler for this ${message.type}`);
-      return;
+      return this.noHandler(queueProcessor, message);
     }
 
     messageMap.subject.next(message);
+  }
+
+  noHandler(queueProcessor: CqrsQueueProcessors, message: AbstractMessage) {
+    console.log(`No handler for this ${message.type}`);
+      if (queueProcessor === CqrsQueueProcessors.ERROR_QUEUE) {
+        console.log('--------');
+        console.log((message as any).event);
+        console.log((message as any).message);
+        console.log('--------');
+      }
   }
 
   getProcessorObservable(queueProcessor: CqrsQueueProcessors) {
