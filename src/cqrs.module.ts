@@ -6,11 +6,12 @@ import * as Redis from "ioredis";
 
 import { CqrsQueueProcessors } from "./enums";
 
-import { RedisCommandQueueProcessor, RedisEventQueueProcessor } from "./redis";
+import { RedisCommandQueueProcessor, RedisEventQueueProcessor, RedisErrorQueueProcessor } from "./redis";
 
 import {
   EventBusService,
   CommandBusService,
+  ErrorBusService,
   QueueRegistryService,
 } from "./services";
 
@@ -29,12 +30,14 @@ export class CqrsModule {
         options.queue = {
           commands: options.queue,
           events: options.queue,
+          errors: options.queue
         };
       }
     } else {
       options.queue = {
         commands: false,
         events: false,
+        errors: false
       };
     }
     QueueRegistry.getInstance().queueOptions = options.queue;
@@ -46,6 +49,7 @@ export class CqrsModule {
       QueueRegistryService,
       CommandBusService,
       EventBusService,
+      ErrorBusService,
     ];
     return {
       module: CqrsModule,
@@ -67,10 +71,14 @@ export class CqrsModule {
         name: CqrsQueueProcessors.EVENT_QUEUE,
         redis: redisOpts,
       }),
+      BullModule.registerQueue({
+        name: CqrsQueueProcessors.ERROR_QUEUE,
+        redis: redisOpts,
+      }),
     ];
   }
 
   static getRedisProviders(): any[] {
-    return [RedisCommandQueueProcessor, RedisEventQueueProcessor];
+    return [RedisCommandQueueProcessor, RedisEventQueueProcessor, RedisErrorQueueProcessor];
   }
 }

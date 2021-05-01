@@ -26,6 +26,10 @@ type QueueMap = {
   [prop: string]: QueueMapValue;
 };
 
+type DispatchQueueCheckingMap = {
+  [prop: string]: string;
+}
+
 export class QueueRegistry {
   // singleton
   private static instance: QueueRegistry;
@@ -35,6 +39,7 @@ export class QueueRegistry {
   }
 
   // instance
+  private dispatchQueueCheckingMap: DispatchQueueCheckingMap;
   private queueMap: QueueMap;
   public queueOptions: CqrsModuleQueueOptions;
 
@@ -47,13 +52,9 @@ export class QueueRegistry {
     message: AbstractMessage
   ): void {
     if (
-      (this.queueOptions.commands &&
-        queueProcessor === CqrsQueueProcessors.COMMAND_QUEUE) ||
-      (this.queueOptions.events &&
-        queueProcessor === CqrsQueueProcessors.EVENT_QUEUE)
-    ) {
-      this.nonQueueHandle(queueProcessor, message);
-    } else this.queueMap[queueProcessor].subject.next(message);
+      this.queueOptions[this.dispatchQueueCheckingMap[queueProcessor]]
+    ) this.nonQueueHandle(queueProcessor, message);
+    else this.queueMap[queueProcessor].subject.next(message);
   }
 
   handle(queueProcessor: CqrsQueueProcessors, message: AbstractMessage) {
@@ -118,6 +119,14 @@ export class QueueRegistry {
           messageMap: {} as MessageMap,
         })
     );
+    this.createDispatchQueueCheckingMap();
+  }
+
+  private createDispatchQueueCheckingMap() {
+    this.dispatchQueueCheckingMap = {};
+    this.dispatchQueueCheckingMap[CqrsQueueProcessors.COMMAND_QUEUE] = 'commands';
+    this.dispatchQueueCheckingMap[CqrsQueueProcessors.EVENT_QUEUE] = 'events';
+    this.dispatchQueueCheckingMap[CqrsQueueProcessors.ERROR_QUEUE] = 'errors';
   }
 
   private getMessageMap(
@@ -135,10 +144,3 @@ export class QueueRegistry {
     return queue.messageMap[messageType];
   }
 }
-
-/* 
-
- App -> (single observable) -> Processor -> queue
- Queue -> Processor -> (typed observables)(map data to type) -> App
-
-*/
