@@ -1,6 +1,6 @@
-import { AbstractMessage } from "../types";
-import { CqrsQueueProcessors, Metatypes } from "../enums";
-import { AbstractHandler } from "../services";
+import { AbstractMessage } from '../types';
+import { CqrsQueueProcessors, Metatypes } from '../enums';
+import { AbstractHandler } from '../services';
 
 export abstract class AbstractCommandHandler<
   MessageType extends AbstractMessage

@@ -1,4 +1,5 @@
 export {
   RedisCommandQueueProcessor,
   RedisEventQueueProcessor,
-} from "./processors";
+  RedisErrorQueueProcessor,
+} from './processors';

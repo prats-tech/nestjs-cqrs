@@ -1,22 +1,28 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DynamicModule, Global, Module } from "@nestjs/common";
-import { BullModule } from "@nestjs/bull";
+import { DynamicModule, Global, Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bull';
 
-import * as Redis from "ioredis";
+import * as Redis from 'ioredis';
 
-import { CqrsQueueProcessors } from "./enums";
+import { CqrsQueueProcessors } from './enums';
 
-import { RedisCommandQueueProcessor, RedisEventQueueProcessor } from "./redis";
+import {
+  RedisCommandQueueProcessor,
+  RedisEventQueueProcessor,
+  RedisErrorQueueProcessor,
+} from './redis';
 
 import {
   EventBusService,
   CommandBusService,
+  ErrorBusService,
   QueueRegistryService,
-} from "./services";
+  CqrsLogService,
+} from './services';
 
-import { QueueRegistry } from "./static";
+import { QueueRegistry } from './static';
 
-import { CqrsModuleOptions } from "./types";
+import { CqrsModuleOptions } from './types';
 
 @Global()
 @Module({})
@@ -25,16 +31,18 @@ export class CqrsModule {
     let queueImports: DynamicModule[];
     let queueProviders: any[];
     if (options.queue) {
-      if (typeof options.queue === "boolean") {
+      if (typeof options.queue === 'boolean') {
         options.queue = {
           commands: options.queue,
           events: options.queue,
+          errors: options.queue,
         };
       }
     } else {
       options.queue = {
         commands: false,
         events: false,
+        errors: false,
       };
     }
     QueueRegistry.getInstance().queueOptions = options.queue;
@@ -46,6 +54,8 @@ export class CqrsModule {
       QueueRegistryService,
       CommandBusService,
       EventBusService,
+      ErrorBusService,
+      CqrsLogService,
     ];
     return {
       module: CqrsModule,
@@ -56,7 +66,7 @@ export class CqrsModule {
   }
 
   static getRedisImports(
-    redisOpts: string | Redis.RedisOptions
+    redisOpts: string | Redis.RedisOptions,
   ): DynamicModule[] {
     return [
       BullModule.registerQueue({
@@ -67,10 +77,18 @@ export class CqrsModule {
         name: CqrsQueueProcessors.EVENT_QUEUE,
         redis: redisOpts,
       }),
+      BullModule.registerQueue({
+        name: CqrsQueueProcessors.ERROR_QUEUE,
+        redis: redisOpts,
+      }),
     ];
   }
 
   static getRedisProviders(): any[] {
-    return [RedisCommandQueueProcessor, RedisEventQueueProcessor];
+    return [
+      RedisCommandQueueProcessor,
+      RedisEventQueueProcessor,
+      RedisErrorQueueProcessor,
+    ];
   }
 }

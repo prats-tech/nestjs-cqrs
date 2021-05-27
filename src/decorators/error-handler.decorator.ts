@@ -3,13 +3,13 @@ import { AbstractMessage } from '../types';
 
 import { MessageHandler } from './message-handler.decorator';
 
-export function EventHandler(
+export function ErrorHandler(
   messageType: typeof AbstractMessage,
 ): ClassDecorator {
   return (target: any) => {
     return MessageHandler(
-      CqrsQueueProcessors.EVENT_QUEUE,
-      Metatypes.EventHandler,
+      CqrsQueueProcessors.ERROR_QUEUE,
+      Metatypes.ErrorHandler,
       messageType,
     )(target);
   };

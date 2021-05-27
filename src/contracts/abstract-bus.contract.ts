@@ -1,6 +1,6 @@
-import { Observable } from "rxjs";
+import { Observable } from 'rxjs';
 
-import { AbstractMessage } from "../types";
+import { AbstractMessage } from '../types';
 
 export interface AbstractBusContract<MessageType extends AbstractMessage> {
   // returns the observable for the message queue

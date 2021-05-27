@@ -4,17 +4,17 @@ import { InjectQueue, OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 
 import { CqrsQueueProcessors } from '../../enums';
-import { CommandBusService, QueueRegistryService } from '../../services';
+import { EventBusService, QueueRegistryService } from '../../services';
 
-@Processor(CqrsQueueProcessors.COMMAND_QUEUE)
-export class CommandQueueProcessor {
+@Processor(CqrsQueueProcessors.ERROR_QUEUE)
+export class ErrorQueueProcessor {
   constructor(
-    @InjectQueue(CqrsQueueProcessors.COMMAND_QUEUE)
+    @InjectQueue(CqrsQueueProcessors.ERROR_QUEUE)
     private readonly queue: Queue,
     private readonly queueRegistryService: QueueRegistryService,
-    private readonly commandBus: CommandBusService,
+    private readonly eventBus: EventBusService,
   ) {
-    this.commandBus.observable().subscribe({
+    this.eventBus.observable().subscribe({
       next: this.onMessageDispatch.bind(this),
     });
   }
@@ -24,15 +24,12 @@ export class CommandQueueProcessor {
     console.log('error', error, job.data);
   }
 
-  @Process(CqrsQueueProcessors.COMMAND_QUEUE)
+  @Process(CqrsQueueProcessors.ERROR_QUEUE)
   process(job: Job<any>) {
-    this.queueRegistryService.handle(
-      CqrsQueueProcessors.COMMAND_QUEUE,
-      job.data,
-    );
+    this.queueRegistryService.handle(CqrsQueueProcessors.ERROR_QUEUE, job.data);
   }
 
   async onMessageDispatch(message: any) {
-    await this.queue.add(CqrsQueueProcessors.COMMAND_QUEUE, message);
+    await this.queue.add(CqrsQueueProcessors.ERROR_QUEUE, message);
   }
 }

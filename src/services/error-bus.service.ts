@@ -9,13 +9,13 @@ import { QueueRegistryService } from './queue-registry.service';
 import { AbstractBusService } from './abstract-bus.service';
 
 @Injectable()
-export class CommandBusService extends AbstractBusService<AbstractMessage> {
+export class ErrorBusService extends AbstractBusService<AbstractMessage> {
   constructor(
     queueRegistryService: QueueRegistryService,
     cqrsLogService: CqrsLogService,
   ) {
     super(
-      CqrsQueueProcessors.COMMAND_QUEUE,
+      CqrsQueueProcessors.ERROR_QUEUE,
       queueRegistryService,
       cqrsLogService,
     );

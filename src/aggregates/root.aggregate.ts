@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import { AggregateSourceContract } from "../contracts";
-import { Metatypes } from "../enums";
-import { EventBusService } from "../services";
+import { AggregateSourceContract } from '../contracts';
+import { Metatypes } from '../enums';
+import { EventBusService } from '../services';
 
 export interface AggregateRootSource {
   model: any;
@@ -23,14 +22,14 @@ export interface AggregateRootConfig {
 export class AggregateRoot {
   protected sources: AggregateRootSources = {};
 
+  constructor(protected readonly processId?: string) {}
+
   protected async loadOrNew(id: string | number): Promise<this> {
-    return this.initSources(
-      async (service) => await service.findOneOrCreate(id)
-    );
+    return this.initSources(async service => await service.findOneOrCreate(id));
   }
 
   protected async load(id: string): Promise<this> {
-    return this.initSources(async (service) => await service.findOne(id));
+    return this.initSources(async service => await service.findOne(id));
   }
 
   protected async initSources(fnLoad: Function): Promise<this> {
@@ -56,12 +55,13 @@ export class AggregateRoot {
 
   async commit() {
     await Promise.all(
-      Object.keys(this.sources).map((key) => {
+      Object.keys(this.sources).map(key => {
         const source = this.sources[key];
         if (source.changed) {
           return this.getServiceForSource(key).save(source.model);
-        } else return Promise.resolve(source.model);
-      })
+        }
+        return Promise.resolve(source.model);
+      }),
     );
     this.eventBus().dispatchAll();
   }
@@ -69,7 +69,7 @@ export class AggregateRoot {
   protected eventBus(): EventBusService {
     return Reflect.getMetadata(
       Metatypes.AggregateEventBus,
-      this.getClassName()
+      this.getClassName(),
     ) as EventBusService;
   }
 
@@ -80,12 +80,12 @@ export class AggregateRoot {
   private getServices(): Services {
     return Reflect.getMetadata(
       Metatypes.AggregateServices,
-      this.getClassName()
+      this.getClassName(),
     ) as Services;
   }
 
   private getServiceForSource(
-    sourceName: string
+    sourceName: string,
   ): AggregateSourceContract<any> {
     return this.getServices()[sourceName];
   }
