@@ -14,6 +14,7 @@ export class CqrsModuleOptions {
     region: string;
     accessKey: string;
     secretKey: string;
+    endpoint: string;
     commandQueue: string;
     eventQueue: string;
     errorQueue: string;

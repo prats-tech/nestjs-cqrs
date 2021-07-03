@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { DynamicModule, Global, Injectable, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 
 import * as Redis from 'ioredis';
@@ -11,6 +11,12 @@ import {
   RedisEventQueueProcessor,
   RedisErrorQueueProcessor,
 } from './providers/redis';
+
+import {
+  AwsSQSCommandQueueProcessor,
+  AwsSQSErrorsQueueProcessor,
+  AwsSQSEventQueueProcessor,
+} from './providers/aws/sqs';
 
 import {
   EventBusService,
@@ -51,6 +57,7 @@ export class CqrsModule {
       queueImports = this.getRedisImports(options.redis);
       queueProviders = this.getRedisProviders();
     } else if (options.service === 'aws' && options.aws) {
+      queueImports = [];
       queueProviders = this.getSqsProviders();
     }
 
@@ -62,11 +69,16 @@ export class CqrsModule {
       CqrsLogService,
     ];
 
+    const provider = {
+      provide: 'CQRS-OPTIONS',
+      useFactory: () => options,
+    };
+
     return {
       module: CqrsModule,
       imports: [...queueImports],
-      providers: [...queueProviders, ...providers],
-      exports: [...providers],
+      providers: [...queueProviders, ...providers, provider],
+      exports: [...providers, provider],
     };
   }
 
@@ -98,6 +110,10 @@ export class CqrsModule {
   }
 
   private static getSqsProviders(): any[] {
-    return [];
+    return [
+      AwsSQSCommandQueueProcessor,
+      AwsSQSErrorsQueueProcessor,
+      AwsSQSEventQueueProcessor,
+    ];
   }
 }
