@@ -51,7 +51,7 @@ export class AwsSQSAbstractQueueProcessor {
 
   async onMessageDispatch(message: any) {
     const messageCommand = new SendMessageCommand({
-      QueueUrl: this.cqrsOptions.aws.commandQueue,
+      QueueUrl: this.queueUrl,
       MessageBody: JSON.stringify(message),
     });
     await this.client.send(messageCommand);
