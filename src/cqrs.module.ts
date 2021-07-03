@@ -10,7 +10,7 @@ import {
   RedisCommandQueueProcessor,
   RedisEventQueueProcessor,
   RedisErrorQueueProcessor,
-} from './redis';
+} from './providers/redis';
 
 import {
   EventBusService,
@@ -30,26 +30,30 @@ export class CqrsModule {
   static register(options: CqrsModuleOptions): DynamicModule {
     let queueImports: DynamicModule[];
     let queueProviders: any[];
-    if (options.queue) {
-      if (typeof options.queue === 'boolean') {
-        options.queue = {
-          commands: options.queue,
-          events: options.queue,
-          errors: options.queue,
-        };
-      }
+
+    if (options.async && typeof options.async === 'boolean') {
+      options.async = {
+        commands: options.async,
+        events: options.async,
+        errors: options.async,
+      };
     } else {
-      options.queue = {
+      options.async = {
         commands: false,
         events: false,
         errors: false,
       };
     }
-    QueueRegistry.getInstance().queueOptions = options.queue;
-    if (options.redis) {
+
+    QueueRegistry.getInstance().asyncOptions = options.async;
+
+    if (options.service === 'redis' && options.redis) {
       queueImports = this.getRedisImports(options.redis);
       queueProviders = this.getRedisProviders();
+    } else if (options.service === 'aws' && options.aws) {
+      queueProviders = this.getSqsProviders();
     }
+
     const providers = [
       QueueRegistryService,
       CommandBusService,
@@ -57,6 +61,7 @@ export class CqrsModule {
       ErrorBusService,
       CqrsLogService,
     ];
+
     return {
       module: CqrsModule,
       imports: [...queueImports],
@@ -65,7 +70,7 @@ export class CqrsModule {
     };
   }
 
-  static getRedisImports(
+  private static getRedisImports(
     redisOpts: string | Redis.RedisOptions,
   ): DynamicModule[] {
     return [
@@ -84,11 +89,15 @@ export class CqrsModule {
     ];
   }
 
-  static getRedisProviders(): any[] {
+  private static getRedisProviders(): any[] {
     return [
       RedisCommandQueueProcessor,
       RedisEventQueueProcessor,
       RedisErrorQueueProcessor,
     ];
+  }
+
+  private static getSqsProviders(): any[] {
+    return [];
   }
 }
