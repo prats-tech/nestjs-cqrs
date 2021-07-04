@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { DynamicModule, Global, Injectable, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 
 import * as Redis from 'ioredis';
@@ -10,7 +10,13 @@ import {
   RedisCommandQueueProcessor,
   RedisEventQueueProcessor,
   RedisErrorQueueProcessor,
-} from './redis';
+} from './providers/redis';
+
+import {
+  AwsSQSCommandQueueProcessor,
+  AwsSQSErrorsQueueProcessor,
+  AwsSQSEventQueueProcessor,
+} from './providers/aws/sqs';
 
 import {
   EventBusService,
@@ -30,26 +36,31 @@ export class CqrsModule {
   static register(options: CqrsModuleOptions): DynamicModule {
     let queueImports: DynamicModule[];
     let queueProviders: any[];
-    if (options.queue) {
-      if (typeof options.queue === 'boolean') {
-        options.queue = {
-          commands: options.queue,
-          events: options.queue,
-          errors: options.queue,
-        };
-      }
+
+    if (options.async && typeof options.async === 'boolean') {
+      options.async = {
+        commands: options.async,
+        events: options.async,
+        errors: options.async,
+      };
     } else {
-      options.queue = {
+      options.async = {
         commands: false,
         events: false,
         errors: false,
       };
     }
-    QueueRegistry.getInstance().queueOptions = options.queue;
-    if (options.redis) {
+
+    QueueRegistry.getInstance().asyncOptions = options.async;
+
+    if (options.service === 'redis' && options.redis) {
       queueImports = this.getRedisImports(options.redis);
       queueProviders = this.getRedisProviders();
+    } else if (options.service === 'aws' && options.aws) {
+      queueImports = [];
+      queueProviders = this.getSqsProviders();
     }
+
     const providers = [
       QueueRegistryService,
       CommandBusService,
@@ -57,15 +68,21 @@ export class CqrsModule {
       ErrorBusService,
       CqrsLogService,
     ];
+
+    const provider = {
+      provide: 'CQRS-OPTIONS',
+      useFactory: () => options,
+    };
+
     return {
       module: CqrsModule,
       imports: [...queueImports],
-      providers: [...queueProviders, ...providers],
-      exports: [...providers],
+      providers: [...queueProviders, ...providers, provider],
+      exports: [...providers, provider],
     };
   }
 
-  static getRedisImports(
+  private static getRedisImports(
     redisOpts: string | Redis.RedisOptions,
   ): DynamicModule[] {
     return [
@@ -84,11 +101,19 @@ export class CqrsModule {
     ];
   }
 
-  static getRedisProviders(): any[] {
+  private static getRedisProviders(): any[] {
     return [
       RedisCommandQueueProcessor,
       RedisEventQueueProcessor,
       RedisErrorQueueProcessor,
+    ];
+  }
+
+  private static getSqsProviders(): any[] {
+    return [
+      AwsSQSCommandQueueProcessor,
+      AwsSQSErrorsQueueProcessor,
+      AwsSQSEventQueueProcessor,
     ];
   }
 }

@@ -4,7 +4,7 @@ import { CqrsQueueProcessors, Metatypes } from '../enums';
 import {
   NewableClass,
   AbstractMessage,
-  CqrsModuleQueueOptions,
+  CqrsModuleAsyncOptions,
 } from '../types';
 
 type MessageMapValue = {
@@ -41,7 +41,7 @@ export class QueueRegistry {
   // instance
   private dispatchQueueCheckingMap: DispatchQueueCheckingMap;
   private queueMap: QueueMap;
-  public queueOptions: CqrsModuleQueueOptions;
+  public asyncOptions: CqrsModuleAsyncOptions;
 
   constructor() {
     this.createQueueMap();
@@ -51,9 +51,11 @@ export class QueueRegistry {
     queueProcessor: CqrsQueueProcessors,
     message: AbstractMessage,
   ): void {
-    if (this.queueOptions[this.dispatchQueueCheckingMap[queueProcessor]])
+    if (this.asyncOptions[this.dispatchQueueCheckingMap[queueProcessor]]) {
       this.nonQueueHandle(queueProcessor, message);
-    else this.queueMap[queueProcessor].subject.next(message);
+    } else {
+      this.queueMap[queueProcessor].subject.next(message);
+    }
   }
 
   handle(queueProcessor: CqrsQueueProcessors, message: AbstractMessage) {
