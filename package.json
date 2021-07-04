@@ -1,6 +1,6 @@
 {
   "name": "@prats-tech/nestjs-cqrs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "In development, don't use for production",
   "repository": "git@github.com:prats-tech/nestjs-cqrs.git",
   "authors": [
