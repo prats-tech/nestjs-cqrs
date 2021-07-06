@@ -18,7 +18,12 @@ export class CqrsModuleOptions {
       commandQueueUrl: string;
       eventQueueUrl: string;
       errorQueueUrl: string;
-      waitTimeSeconds?: number;
+      // if this is 0 means short polling
+      longPollWaitTimeSeconds: number;
+      // timeout for receive checking for messages
+      receiveMessagesWaitTimeSeconds: number;
+      // if is true, the receive time is random
+      randomizeReceiveTimes?: boolean;
     };
   };
 }

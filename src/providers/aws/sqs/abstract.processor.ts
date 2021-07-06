@@ -1,34 +1,17 @@
-import { Inject, Injectable } from '@nestjs/common';
-
-import {
-  DeleteMessageCommand,
-  Message,
-  ReceiveMessageCommand,
-  SendMessageCommand,
-  SQSClient,
-} from '@aws-sdk/client-sqs';
-
 import { CqrsModuleOptions, AbstractMessage } from '../../../types';
 import { AbstractBusService, QueueRegistryService } from '../../../services';
 import { CqrsQueueProcessors } from '../../../enums';
 
-export class AwsSQSAbstractQueueProcessor {
-  private client: SQSClient;
-  private queueUrl: string;
+import { AwsSqsQueue } from '../rx-sqs';
 
+export class AwsSQSAbstractQueueProcessor {
   constructor(
     private queueRegistryService: QueueRegistryService,
     private abstractBusService: AbstractBusService<AbstractMessage>,
     private cqrsOptions: CqrsModuleOptions,
     private queueProcessor: CqrsQueueProcessors,
   ) {
-    this.abstractBusService.observable().subscribe({
-      next: this.onMessageDispatch.bind(this),
-    });
-
     const { aws } = this.cqrsOptions;
-
-    this.client = new SQSClient(aws.sqs.client);
 
     const provider = {
       COMMAND_QUEUE: aws.sqs.commandQueueUrl,
@@ -36,43 +19,35 @@ export class AwsSQSAbstractQueueProcessor {
       ERROR_QUEUE: aws.sqs.errorQueueUrl,
     };
 
-    this.queueUrl = provider[queueProcessor];
+    const queueUrl = provider[queueProcessor];
 
-    this.consume();
-  }
+    const {
+      longPollWaitTimeSeconds,
+      receiveMessagesWaitTimeSeconds,
+      randomizeReceiveTimes,
+    } = aws.sqs;
 
-  async onMessageDispatch(message: any) {
-    const messageCommand = new SendMessageCommand({
-      QueueUrl: this.queueUrl,
-      MessageBody: JSON.stringify(message),
+    const sqsQueue = new AwsSqsQueue({
+      clientConfig: aws.sqs.client,
+      queueUrl: queueUrl,
+      longPollWaitTimeSeconds,
+      receiveMessagesWaitTimeSeconds,
+      randomizeReceiveTimes,
     });
-    await this.client.send(messageCommand);
-  }
 
-  async consume() {
-    const receiveMessageCommand = new ReceiveMessageCommand({
-      QueueUrl: this.queueUrl,
-      WaitTimeSeconds: this.cqrsOptions.aws.sqs.waitTimeSeconds ?? 3,
+    this.abstractBusService.observable().subscribe({
+      next: async message => {
+        await sqsQueue.dispatch(message);
+      },
     });
-    const { Messages } = await this.client.send(receiveMessageCommand);
-    if (Messages?.length) {
-      await Promise.all(Messages.map(this.processMessage()));
-    }
-  }
 
-  private processMessage() {
-    return async (message: Message): Promise<void> => {
-      this.queueRegistryService.handle(
-        this.queueProcessor,
-        JSON.parse(message.Body),
-      );
-
-      const deleteMessageCommand = new DeleteMessageCommand({
-        QueueUrl: this.queueUrl,
-        ReceiptHandle: message.ReceiptHandle,
-      });
-
-      await this.client.send(deleteMessageCommand);
-    };
+    sqsQueue.listen().subscribe({
+      next: message => {
+        this.queueRegistryService.handle(
+          this.queueProcessor,
+          JSON.parse(message.Body),
+        );
+      },
+    });
   }
 }
