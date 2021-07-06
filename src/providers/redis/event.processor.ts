@@ -6,30 +6,31 @@ import { Job, Queue } from 'bull';
 import { CqrsQueueProcessors } from '../../enums';
 import { EventBusService, QueueRegistryService } from '../../services';
 
+import { RedisAbstractQueueProcessor } from './abstract.processor';
+
 @Processor(CqrsQueueProcessors.EVENT_QUEUE)
-export class EventQueueProcessor {
+export class RedisEventQueueProcessor extends RedisAbstractQueueProcessor {
   constructor(
     @InjectQueue(CqrsQueueProcessors.EVENT_QUEUE)
-    private readonly queue: Queue,
-    private readonly queueRegistryService: QueueRegistryService,
-    private readonly eventBus: EventBusService,
+    queue: Queue,
+    queueRegistryService: QueueRegistryService,
+    eventBusService: EventBusService,
   ) {
-    this.eventBus.observable().subscribe({
-      next: this.onMessageDispatch.bind(this),
-    });
+    super(
+      CqrsQueueProcessors.EVENT_QUEUE,
+      queue,
+      queueRegistryService,
+      eventBusService,
+    );
   }
 
   @OnQueueFailed()
   onError(job: Job<any>, error: any) {
-    console.log('error', error, job.data);
+    super.onError(job, error);
   }
 
   @Process(CqrsQueueProcessors.EVENT_QUEUE)
   process(job: Job<any>) {
-    this.queueRegistryService.handle(CqrsQueueProcessors.EVENT_QUEUE, job.data);
-  }
-
-  async onMessageDispatch(message: any) {
-    await this.queue.add(CqrsQueueProcessors.EVENT_QUEUE, message);
+    super.process(job);
   }
 }

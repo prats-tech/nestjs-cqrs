@@ -4,10 +4,10 @@ import { AbstractError, AbstractMessage, MessageHandlerError } from '../types';
 import { AbstractHandlerContract } from '../contracts';
 import { CqrsQueueProcessors, Metatypes } from '../enums';
 import { QueueRegistry } from '../static';
-import { CqrsLogService } from './cqrs-log.service';
 
 export abstract class AbstractHandler<MessageType extends AbstractMessage>
-  implements AbstractHandlerContract<MessageType> {
+  implements AbstractHandlerContract<MessageType>
+{
   private logger: Logger;
 
   constructor(

@@ -14,7 +14,6 @@ import { CqrsQueueProcessors } from '../../../enums';
 
 export class AwsSQSAbstractQueueProcessor {
   private client: SQSClient;
-
   private queueUrl: string;
 
   constructor(
@@ -27,21 +26,14 @@ export class AwsSQSAbstractQueueProcessor {
       next: this.onMessageDispatch.bind(this),
     });
 
-    const { aws } = cqrsOptions;
+    const { aws } = this.cqrsOptions;
 
-    this.client = new SQSClient({
-      region: aws.region,
-      endpoint: aws.endpoint,
-      credentials: {
-        accessKeyId: aws.accessKey,
-        secretAccessKey: aws.secretKey,
-      },
-    });
+    this.client = new SQSClient(aws.sqs.client);
 
     const provider = {
-      COMMAND_QUEUE: aws.commandQueue,
-      EVENT_QUEUE: aws.eventQueue,
-      ERROR_QUEUE: aws.errorQueue,
+      COMMAND_QUEUE: aws.sqs.commandQueueUrl,
+      EVENT_QUEUE: aws.sqs.eventQueueUrl,
+      ERROR_QUEUE: aws.sqs.errorQueueUrl,
     };
 
     this.queueUrl = provider[queueProcessor];
@@ -60,7 +52,7 @@ export class AwsSQSAbstractQueueProcessor {
   async consume() {
     const receiveMessageCommand = new ReceiveMessageCommand({
       QueueUrl: this.queueUrl,
-      WaitTimeSeconds: 20,
+      WaitTimeSeconds: this.cqrsOptions.aws.sqs.waitTimeSeconds ?? 3,
     });
     const { Messages } = await this.client.send(receiveMessageCommand);
     if (Messages?.length) {

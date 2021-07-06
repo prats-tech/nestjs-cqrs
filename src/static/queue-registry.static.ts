@@ -52,9 +52,9 @@ export class QueueRegistry {
     message: AbstractMessage,
   ): void {
     if (this.asyncOptions[this.dispatchQueueCheckingMap[queueProcessor]]) {
-      this.nonQueueHandle(queueProcessor, message);
-    } else {
       this.queueMap[queueProcessor].subject.next(message);
+    } else {
+      this.nonQueueHandle(queueProcessor, message);
     }
   }
 
