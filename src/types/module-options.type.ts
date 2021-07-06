@@ -1,5 +1,7 @@
 import * as Redis from 'ioredis';
 
+import { SQSClientConfig } from '@aws-sdk/client-sqs';
+
 export class CqrsModuleAsyncOptions {
   commands?: boolean;
   events?: boolean;
@@ -11,12 +13,17 @@ export class CqrsModuleOptions {
   async?: boolean | CqrsModuleAsyncOptions;
   redis?: string | Redis.RedisOptions;
   aws?: {
-    region: string;
-    accessKey: string;
-    secretKey: string;
-    endpoint: string;
-    commandQueue: string;
-    eventQueue: string;
-    errorQueue: string;
+    sqs: {
+      client: SQSClientConfig;
+      commandQueueUrl: string;
+      eventQueueUrl: string;
+      errorQueueUrl: string;
+      // if this is 0 means short polling
+      longPollWaitTimeSeconds: number;
+      // timeout for receive checking for messages
+      receiveMessagesWaitTimeSeconds: number;
+      // if is true, the receive time is random
+      randomizeReceiveTimes?: boolean;
+    };
   };
 }

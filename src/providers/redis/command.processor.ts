@@ -6,33 +6,31 @@ import { Job, Queue } from 'bull';
 import { CqrsQueueProcessors } from '../../enums';
 import { CommandBusService, QueueRegistryService } from '../../services';
 
+import { RedisAbstractQueueProcessor } from './abstract.processor';
+
 @Processor(CqrsQueueProcessors.COMMAND_QUEUE)
-export class CommandQueueProcessor {
+export class RedisCommandQueueProcessor extends RedisAbstractQueueProcessor {
   constructor(
     @InjectQueue(CqrsQueueProcessors.COMMAND_QUEUE)
-    private readonly queue: Queue,
-    private readonly queueRegistryService: QueueRegistryService,
-    private readonly commandBus: CommandBusService,
+    queue: Queue,
+    queueRegistryService: QueueRegistryService,
+    commandBusService: CommandBusService,
   ) {
-    this.commandBus.observable().subscribe({
-      next: this.onMessageDispatch.bind(this),
-    });
+    super(
+      CqrsQueueProcessors.COMMAND_QUEUE,
+      queue,
+      queueRegistryService,
+      commandBusService,
+    );
   }
 
   @OnQueueFailed()
   onError(job: Job<any>, error: any) {
-    console.log('error', error, job.data);
+    super.onError(job, error);
   }
 
   @Process(CqrsQueueProcessors.COMMAND_QUEUE)
   process(job: Job<any>) {
-    this.queueRegistryService.handle(
-      CqrsQueueProcessors.COMMAND_QUEUE,
-      job.data,
-    );
-  }
-
-  async onMessageDispatch(message: any) {
-    await this.queue.add(CqrsQueueProcessors.COMMAND_QUEUE, message);
+    super.process(job);
   }
 }

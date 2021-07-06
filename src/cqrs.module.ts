@@ -4,20 +4,19 @@ import { BullModule } from '@nestjs/bull';
 
 import * as Redis from 'ioredis';
 
-import { CqrsQueueProcessors } from './enums';
+import { StaticInjectorModule } from '@prats-tech/nestjs-static-injector';
 
+import { CqrsQueueProcessors } from './enums';
 import {
   RedisCommandQueueProcessor,
   RedisEventQueueProcessor,
   RedisErrorQueueProcessor,
 } from './providers/redis';
-
 import {
   AwsSQSCommandQueueProcessor,
   AwsSQSErrorsQueueProcessor,
   AwsSQSEventQueueProcessor,
 } from './providers/aws/sqs';
-
 import {
   EventBusService,
   CommandBusService,
@@ -25,9 +24,7 @@ import {
   QueueRegistryService,
   CqrsLogService,
 } from './services';
-
 import { QueueRegistry } from './static';
-
 import { CqrsModuleOptions } from './types';
 
 @Global()
@@ -76,7 +73,7 @@ export class CqrsModule {
 
     return {
       module: CqrsModule,
-      imports: [...queueImports],
+      imports: [StaticInjectorModule, ...queueImports],
       providers: [...queueProviders, ...providers, provider],
       exports: [...providers, provider],
     };
